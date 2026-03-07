@@ -1,0 +1,7 @@
+.venv
+.vscode/
+__pycache__/
+*.pyp[cod]
+.DS_Store
+results/*.csv
+.ipynb_checkpoints/
