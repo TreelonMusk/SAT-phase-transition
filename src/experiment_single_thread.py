@@ -26,6 +26,7 @@ def solve_formula(clauses):
     solver = Minisat22(bootstrap_with=clauses)
     result = solver.solve()
     runtime = time.perf_counter() - start
+    solver.delete()
     return result, runtime
 
 def run_experiment(k, n, alpha, runs=100):
