@@ -2,17 +2,26 @@ import csv
 import random
 import time
 import numpy as np
-from pysat.solvers import Minisat22
+from pysat.solvers import Cadical153
 from multiprocessing import Pool, cpu_count
-# from concurrent.futures import ProcessPoolExecutor
+from collections import defaultdict
 
-alphas = np.concatenate([
-    np.linspace(2,4,10),
-    np.linspace(4,4.5,25),
-    np.linspace(4.5,6,10)
+K = 3
+N_VALUES = [50, 60, 70, 80, 90, 100]
+# For 3-SAT: LEFT_ALPHA = 3.8, RIGHT_ALPHA = 4.8
+LEFT_ALPHA = 3.2 #3.8
+RIGHT_ALPHA = 5.2 #4.8
+# For 3-SAT: we go from 3 to 5.5
+ALPHAS = np.concatenate([
+    np.linspace(2,LEFT_ALPHA,15), # 10
+    np.linspace(LEFT_ALPHA,RIGHT_ALPHA,25), # 15
+    np.linspace(RIGHT_ALPHA,8,15) # 10
 ])
-results = []
-n_values = [100, 200, 300, 400]
+RUNS_LOW = 500
+RUNS_HIGH = 10000
+BATCH_SIZE = 20
+CONF_BUDGET = 100000
+OUTPUT_FILE = f"results/{K}sat_parallelized_[{min(N_VALUES)},{max(N_VALUES)}]_{RUNS_LOW}_{RUNS_HIGH}.csv"
 
 def generate(k, n, m):
     clauses = []
@@ -24,46 +33,120 @@ def generate(k, n, m):
     return clauses
 
 def solve_formula(clauses):
-    start = time.perf_counter()
-    solver = Minisat22(bootstrap_with=clauses)
-    result = solver.solve()
-    runtime = time.perf_counter() - start
-    solver.delete()
+    with Cadical153(bootstrap_with=clauses) as solver:
+        solver.conf_budget(CONF_BUDGET)
+        start = time.perf_counter()
+        result = solver.solve()
+        runtime = time.perf_counter() - start
     return result, runtime
 
-def run_single_experiment(args):
-    k, n, alpha = args
+def run_batch(args):
+    k, n, alpha, batch_size = args
     m = int(alpha * n)
-    clauses = generate(k, n, m)
-    result, runtime = solve_formula(clauses)
-    return result, runtime
 
-def run_experiment(k, n, alpha, runs=100):
-    if 3.8 <= alpha <= 4.8:
-        runs = 800
-    else:
-        runs = 200
+    sat_count = 0
+    total_runtime = 0.0
+    total_none = 0
 
-    # args = [(k, n, alpha) for _ in range(runs)]
-    args = [(k, n, alpha)] * runs
+    for _ in range(batch_size):
+        clauses = generate(k, n, m)
+        result, runtime = solve_formula(clauses)
+        if result:
+            sat_count += 1
+        elif result is None:
+            total_none += 1
+        total_runtime += runtime
 
-    with Pool(cpu_count()) as pool:
-        results = pool.map(run_single_experiment, args)
+    return (n, alpha, sat_count, batch_size, total_runtime, total_none)
 
-    sats = [res[0] for res in results]
-    runtimes = [res[1] for res in results]
+def generate_tasks():
+    tasks = []
+    for n in N_VALUES:
+        for alpha in ALPHAS:
+            runs = RUNS_HIGH if LEFT_ALPHA <= alpha <= RIGHT_ALPHA else RUNS_LOW
+            for i in range(0, runs, BATCH_SIZE):
+                batch_size = min(BATCH_SIZE, runs - i)
+                tasks.append((K, n, alpha, batch_size))
+    random.shuffle(tasks)
+    return tasks
 
-    pr_sat = sum(sats) / runs
-    avg_runtime = sum(runtimes) / runs
-
-    return pr_sat, avg_runtime
+# def run_single_experiment(args):
+#     k, n, alpha, run_id = args
+#     m = int(alpha * n)
+#     clauses = generate(k, n, m)
+#     with Minisat22(bootstrap_with=clauses) as solver:
+#         start = time.perf_counter()
+#         result = solver.solve()
+#         runtime = time.perf_counter() - start
+#     return {
+#         "n": n,
+#         "alpha": alpha,
+#         "pr_satisfiable": result,
+#         "avg_runtime": runtime
+#     }
 
 if __name__ == "__main__":
-    with open('results/experiment_parallelized_results.csv', mode='w', newline='') as file:
+    tasks = generate_tasks()
+
+    print(f"Running experiment with {len(tasks)} batches")
+    print(f"Using {cpu_count()} CPU cores")
+    print(f"Batch size: {BATCH_SIZE}, Total runs: {sum(batch[3] for batch in tasks)}")
+
+    results_dict = defaultdict(lambda: {"sat_count": 0, "total_runs": 0, "total_runtime": 0.0, "total_none": 0})
+    completed = 0
+
+    with Pool(processes=cpu_count()) as pool:
+        for n, alpha, sat_count, runs, runtime, total_none in pool.imap_unordered(run_batch, tasks):
+            completed += 1
+            if completed % 50 == 0:
+                print(f"Completed {completed}/{len(tasks)} batches", flush=True)
+
+            key = (n, alpha)
+            results_dict[key]["sat_count"] += sat_count
+            results_dict[key]["total_runs"] += runs
+            results_dict[key]["total_runtime"] += runtime
+            results_dict[key]["total_none"] += total_none
+
+    with open(OUTPUT_FILE, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["n", "alpha", "pr_satisfiable", "avg_runtime"])
+        
+        for (n, alpha), data in sorted(results_dict.items()):
+            pr_sat = data["sat_count"] / data["total_runs"]
+            avg_runtime = data["total_runtime"] / data["total_runs"]
+            pr_none = data["total_none"] / data["total_runs"]
+            writer.writerow([n, alpha, pr_sat, avg_runtime])
+    print("Percentage None:", pr_none * 100, "%")
+    print("Experiment completed, results saved to", OUTPUT_FILE)
 
-        for n in n_values:
-            for alpha in alphas:
-                prob, runtime = run_experiment(3, n, alpha)
-                writer.writerow([n, alpha, prob, runtime])
+    # all_tasks = []
+
+    # for n in N_VALUES:
+    #     for alpha in ALPHAS:
+    #         runs = 700 if 3.8 <= alpha <= 4.8 else 200
+    #         for i in range(runs):
+    #             all_tasks.append((K, n, alpha, i))
+    
+    # print(f"Running experiment with {len(all_tasks)} tasks")
+    
+    # with Pool(processes=cpu_count()) as pool:
+    #     all_results = list(pool.imap_unordered(run_single_experiment, all_tasks))
+    
+    # # Group results by (n, alpha)
+    # results_dict = defaultdict(list)
+    # for res in all_results:
+    #     key = (res["n"], res["alpha"])
+    #     results_dict[key].append(res)
+    
+    # # Write aggregated results
+    # with open(OUTPUT_FILE, mode='w', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerow(["n", "alpha", "pr_satisfiable", "avg_runtime"])
+        
+    #     for (n, alpha), results in sorted(results_dict.items()):
+    #         satisfiable_count = sum(1 for r in results if r["pr_satisfiable"])
+    #         pr_sat = satisfiable_count / len(results)
+    #         avg_runtime = sum(r["avg_runtime"] for r in results) / len(results)
+    #         writer.writerow([n, alpha, pr_sat, avg_runtime])
+    
+    # print("Experiment completed, results saved to", OUTPUT_FILE)
