@@ -3,6 +3,7 @@
 __pycache__/
 *.pyp[cod]
 .DS_Store
-results/*.csv
+results/csv/*.csv
+results/plots/*.png
 .ipynb_checkpoints/
 *.cnf
