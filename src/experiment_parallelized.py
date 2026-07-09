@@ -7,21 +7,25 @@ from multiprocessing import Pool, cpu_count
 from collections import defaultdict
 
 K = 3
-N_VALUES = [50, 60, 70, 80, 90, 100]
-# For 3-SAT: LEFT_ALPHA = 3.8, RIGHT_ALPHA = 4.8
-LEFT_ALPHA = 3.2 #3.8
-RIGHT_ALPHA = 5.2 #4.8
-# For 3-SAT: we go from 3 to 5.5
+# For 2-SAT: [500, 1000, 4000, 16000]
+# For 3-SAT: [90, 110, 130, 150, 170, 190, 210, 230, 250]
+N_VALUES = [25,50,75,100,125,150,175,200]
+# For 2-SAT: LEFT_ALPHA = 0.6, RIGHT_ALPHA = 1.6
+# For 3-SAT: LEFT_ALPHA = 3.2, RIGHT_ALPHA = 5.2
+LEFT_ALPHA = 3.2
+RIGHT_ALPHA = 5.2
+# For 2-SAT: from 0 to 2.5
+# For 3-SAT: from 2 to 8
 ALPHAS = np.concatenate([
-    np.linspace(2,LEFT_ALPHA,15), # 10
-    np.linspace(LEFT_ALPHA,RIGHT_ALPHA,25), # 15
-    np.linspace(RIGHT_ALPHA,8,15) # 10
+    np.linspace(2,LEFT_ALPHA,10), # 10
+    np.linspace(LEFT_ALPHA,RIGHT_ALPHA,20), # 15
+    np.linspace(RIGHT_ALPHA,8,10) # 10
 ])
 RUNS_LOW = 500
-RUNS_HIGH = 10000
+RUNS_HIGH = 3000
 BATCH_SIZE = 20
 CONF_BUDGET = 100000
-OUTPUT_FILE = f"results/{K}sat_parallelized_[{min(N_VALUES)},{max(N_VALUES)}]_{RUNS_LOW}_{RUNS_HIGH}.csv"
+OUTPUT_FILE = f"results/csv/{K}sat_parallelized_[{min(N_VALUES)},{max(N_VALUES)}]_{RUNS_LOW}_{RUNS_HIGH}.csv"
 
 def generate(k, n, m):
     clauses = []

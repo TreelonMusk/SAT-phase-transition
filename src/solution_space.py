@@ -334,9 +334,9 @@ def get_viz_data(args):
 
 if __name__ == "__main__":
     N = 50
-    K = 3
-    ALPHAS = [2.0, 3.0, 3.8, 4.0] # For K = 3
-    # ALPHAS = [0.5, 0.7, 0.9, 1.0, 1.1, 1.2] # For K = 2
+    K = 2
+    # ALPHAS = [2.0, 3.0, 3.8, 4.0] # For K = 3
+    ALPHAS = [0.2, 0.5, 0.8, 1, 1.2, 1.4] # For K = 2
     MAX_SOLS = 200000
     DIMENSIONS = 2  # Set to 2 or 3
     
@@ -350,5 +350,5 @@ if __name__ == "__main__":
 
     # Clean up and Save
     final_df = pd.concat([r for r in results if r is not None])
-    final_df.to_csv(f"results/solution_space_coords_N={N}.csv", index=False)
+    final_df.to_csv(f"results/csv/solution_space_coords_N={N}.csv", index=False)
     print("File saved.")

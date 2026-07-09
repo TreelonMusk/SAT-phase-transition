@@ -2,9 +2,9 @@
 # import matplotlib.pyplot as plt
 # import os
 
-# H_VALUE = 12
-# csv_path = f"results/csv/variable_influence_transition_h{H_VALUE}.csv"
-# output_plot_path = "results/plots/variable_influence_phase_transition.png"
+# H_VALUE = 8
+# csv_path = f"results/csv/variable_influence_transition_h{H_VALUE}_neg.csv"
+# output_plot_path = f"results/plots/variable_influence_h{H_VALUE}_neg.png"
 
 # if not os.path.exists(csv_path):
 #     print(f"Error: Could not find '{csv_path}'.")
@@ -21,17 +21,17 @@
 #              label='Empirical Variable Influence')
     
 #     # Add titles and axis labels using standard thesis formatting
-#     plt.title(f"Complexity Phase Transition: Information Dilution (Fixed h={H_VALUE})", fontsize=12, fontweight='bold')
-#     plt.xlabel("Variable Pool Size (m)", fontsize=11)
-#     plt.ylabel("Pr(Individual Variable Alters Output)", fontsize=11)
+#     # plt.title(f"Complexity Phase Transition: Information Dilution (Fixed h={H_VALUE})", fontsize=12, fontweight='bold')
+#     plt.xlabel("Variable Pool Size (m)")
+#     plt.ylabel("Expected Variable Influence")
     
 #     # Set the X-axis to a logarithmic scale to cleanly show the exponential decay
 #     plt.xscale('log', base=2)
-#     plt.xticks(df['m'], labels=[str(m) for m in df['m']])
+#     # plt.xticks(df['m'], labels=[str(m) for m in df['m']])
     
 #     # Style tweaks for scannability
 #     plt.grid(True, which="both", ls="--", alpha=0.5)
-#     plt.legend(loc="upper right", fontsize=10)
+#     # plt.legend(loc="upper right", fontsize=10)
 #     plt.tight_layout()
     
 #     # Save the figure to your results directory
@@ -90,7 +90,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import os
 
-H_VALUES = [0, 1, 3, 5, 7, 10, 11, 12, 13]
+H_VALUES = [1, 3, 5, 7, 9, 10, 11, 12]
 OUTPUT_PLOT = "results/plots/pure_variable_scaling_collapse.png"
 
 num_heights = len(H_VALUES)
@@ -110,9 +110,9 @@ for idx, height in enumerate(H_VALUES):
              marker=markers[idx % len(markers)], color=colors[idx], linewidth=1.7, markersize=5,
              label=f"Height h = {height}")
 
-plt.title("Trying", fontsize=12, fontweight='bold')
-plt.xlabel(fr"Control Parameter Density ($\beta = m / {gamma}^h$)", fontsize=11)
-plt.ylabel("Pr(Individual Variable Alters Output)", fontsize=11)
+# plt.title("Trying", fontsize=12, fontweight='bold')
+plt.xlabel(fr"Control Parameter Density $\beta = m / {gamma}^h$", fontsize=11)
+plt.ylabel("Expected Variable Influence", fontsize=11)
 plt.xscale('log', base=2)
 plt.grid(True, which="both", ls="--", alpha=0.4)
 plt.legend(loc="lower left", fontsize=10)
