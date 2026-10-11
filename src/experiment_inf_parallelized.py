@@ -6,11 +6,10 @@ from pysat.solvers import Cadical153
 from multiprocessing import Pool, cpu_count
 from collections import defaultdict
 
-# Updated constants for the ITE experiment
-N_VALUES = [10, 15, 20, 25]  # Smaller N as ITE complexity grows fast
+N_VALUES = [10, 15, 20, 25]  # Smaller system size since tree grows exponentially fas
 LEFT_ALPHA = 3.2 #3.8
 RIGHT_ALPHA = 5.2 #4.8
-ALPHAS = np.linspace(1, 10, 40) # Nodes / Variables
+ALPHAS = np.linspace(1, 10, 40)
 RUNS_LOW = 500
 RUNS_HIGH = 10000
 BATCH_SIZE = 20

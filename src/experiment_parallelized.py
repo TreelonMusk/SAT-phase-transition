@@ -74,21 +74,6 @@ def generate_tasks():
     random.shuffle(tasks)
     return tasks
 
-# def run_single_experiment(args):
-#     k, n, alpha, run_id = args
-#     m = int(alpha * n)
-#     clauses = generate(k, n, m)
-#     with Minisat22(bootstrap_with=clauses) as solver:
-#         start = time.perf_counter()
-#         result = solver.solve()
-#         runtime = time.perf_counter() - start
-#     return {
-#         "n": n,
-#         "alpha": alpha,
-#         "pr_satisfiable": result,
-#         "avg_runtime": runtime
-#     }
-
 if __name__ == "__main__":
     tasks = generate_tasks()
 
@@ -122,35 +107,3 @@ if __name__ == "__main__":
             writer.writerow([n, alpha, pr_sat, avg_runtime])
     print("Percentage None:", pr_none * 100, "%")
     print("Experiment completed, results saved to", OUTPUT_FILE)
-
-    # all_tasks = []
-
-    # for n in N_VALUES:
-    #     for alpha in ALPHAS:
-    #         runs = 700 if 3.8 <= alpha <= 4.8 else 200
-    #         for i in range(runs):
-    #             all_tasks.append((K, n, alpha, i))
-    
-    # print(f"Running experiment with {len(all_tasks)} tasks")
-    
-    # with Pool(processes=cpu_count()) as pool:
-    #     all_results = list(pool.imap_unordered(run_single_experiment, all_tasks))
-    
-    # # Group results by (n, alpha)
-    # results_dict = defaultdict(list)
-    # for res in all_results:
-    #     key = (res["n"], res["alpha"])
-    #     results_dict[key].append(res)
-    
-    # # Write aggregated results
-    # with open(OUTPUT_FILE, mode='w', newline='') as file:
-    #     writer = csv.writer(file)
-    #     writer.writerow(["n", "alpha", "pr_satisfiable", "avg_runtime"])
-        
-    #     for (n, alpha), results in sorted(results_dict.items()):
-    #         satisfiable_count = sum(1 for r in results if r["pr_satisfiable"])
-    #         pr_sat = satisfiable_count / len(results)
-    #         avg_runtime = sum(r["avg_runtime"] for r in results) / len(results)
-    #         writer.writerow([n, alpha, pr_sat, avg_runtime])
-    
-    # print("Experiment completed, results saved to", OUTPUT_FILE)

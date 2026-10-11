@@ -22,18 +22,17 @@ def walksat_solve(clauses, n, initial_assignment=None, max_flips=2000):
     return None
 
 def sample_single_cluster(args):
-    """Worker function for parallel processing."""
     clauses, n, solutions_per_cluster = args
     local_solutions = []
     
-    # 1. GLOBAL JUMP
+    # Global jumps
     base_solution = walksat_solve(clauses, n)
     if not base_solution:
         return [] # Failed to find a base solution
     
     local_solutions.append([base_solution[i] for i in range(1, n + 1)])
         
-    # 2. LOCAL EXPLORATION
+    # Local jumps
     for _ in range(solutions_per_cluster):
         perturbed = base_solution.copy()
         kick = random.randint(3,6) # maybe change to (4,8)
@@ -58,7 +57,6 @@ if __name__ == "__main__":
     print(f"Generating formula n={N}, alpha={ALPHA}...")
     clauses = generate_random_3sat(N, ALPHA)
 
-    # Parallelize the outer loop (cluster generation)
     tasks = [(clauses, N, SOLS_PER_CLUSTER) for _ in range(NUM_CLUSTERS)]
     all_solutions = []
     
@@ -69,7 +67,7 @@ if __name__ == "__main__":
     for cluster_sols in results:
         all_solutions.extend(cluster_sols)
         
-    # Remove duplicates
+    # We remove duplicates
     unique_solutions = np.unique(np.array(all_solutions), axis=0)
     
     filename = f"results/npy/solution_space_n{N}_a{ALPHA}.npy"
