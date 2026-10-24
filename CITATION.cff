@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the thesis it was written for."
+title: "SAT Phase Transition Benchmark"
+authors:
+  - family-names: Gavajuc
+    given-names: Alexandru
+repository-code: "https://github.com/TreelonMusk/SAT-phase-transition"
+license: MIT
+preferred-citation:
+  type: thesis
+  title: "From Local to Global Constraints: An Empirical Study of Phase Transitions in CSPs"
+  authors:
+    - family-names: Gavajuc
+      given-names: Alexandru
+  institution:
+    name: "Radboud University Nijmegen"
+  thesis-type: "BSc thesis"
+  year: 2026
+  month: 6
